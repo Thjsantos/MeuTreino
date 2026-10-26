@@ -22,7 +22,7 @@ const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 let users = [], user = null, routines = [], logs = [], session = null;
 const api = async (url, opt) => {
   const r = await fetch(url, opt);
-  if (!r.ok) throw new Error(r.status);
+  if (!r.ok) throw Object.assign(new Error(r.status), { status: r.status });
   return r.json();
 };
 let saveTimer;
@@ -31,14 +31,14 @@ function persist() {
   const uid = user.id, body = JSON.stringify({ routines, logs, session });
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => api(`/api/users/${uid}/state`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body, keepalive: true })
-    .catch(() => toast('⚠️ Não foi possível salvar no servidor')), 150);
+    .catch(e => e.status === 401 ? telaSenha() : toast('⚠️ Não foi possível salvar no servidor')), 150);
 }
 
 async function entrar(p) {
   try {
     const st = await api(`/api/users/${p.id}/state`);
     user = p; routines = st.routines; logs = st.logs; session = st.session;
-  } catch { return toast('⚠️ Servidor indisponível. Inicie o iniciar.bat'); }
+  } catch (e) { return e.status === 401 ? telaSenha() : toast('⚠️ Servidor indisponível'); }
   localStorage.setItem('mt_current', p.id); // só lembra quem foi o último usuário
   editing = null; selDay = iso(new Date());
   $('#who').textContent = p.name;
@@ -46,9 +46,22 @@ async function entrar(p) {
   $('#welcome').close();
   go('exercicios');
 }
+function telaSenha(erro) {
+  $('#userbar').hidden = true;
+  $('#welcome').innerHTML = `<div class="mbody"><h2>🔒 Meu Treino</h2>
+    <form id="senhaForm" class="row"><input id="senha" type="password" placeholder="Senha de acesso" autocomplete="current-password" required style="flex:1">
+    <button class="btn pri">Entrar</button></form>${erro ? '<p style="color:var(--danger)">Senha incorreta.</p>' : ''}</div>`;
+  if (!$('#welcome').open) $('#welcome').showModal();
+}
+document.addEventListener('submit', async ev => {
+  if (ev.target.id !== 'senhaForm') return;
+  ev.preventDefault();
+  try { await api('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ senha: $('#senha').value }) }); location.reload(); }
+  catch { telaSenha(true); }
+});
 async function telaPerfil() {
   $('#userbar').hidden = true;
-  try { users = await api('/api/users'); } catch { users = []; }
+  try { users = await api('/api/users'); } catch (e) { if (e.status === 401) return telaSenha(); users = []; }
   $('#welcome').innerHTML = `<div class="mbody">
     <h2>Quem vai treinar?</h2>
     ${users.length ? `<div class="row" style="gap:12px">${users.map(p => `<button class="btn pri" style="flex:1;font-size:20px;padding:22px" data-prof="${p.id}">${esc(p.name)}</button>`).join('')}</div>` : '<p class="muted">Servidor indisponível. Execute o iniciar.bat e abra http://localhost:3000</p>'}
@@ -323,7 +336,7 @@ $('#welcome').addEventListener('cancel', e => e.preventDefault());
 renderGrid();
 (async () => {
   go('exercicios');
-  try { users = await api('/api/users'); } catch { users = []; }
+  try { users = await api('/api/users'); } catch (e) { if (e.status === 401) return telaSenha(); users = []; }
   const atual = users.find(p => String(p.id) === localStorage.getItem('mt_current'));
   if (atual) entrar(atual); else telaPerfil();
 })();

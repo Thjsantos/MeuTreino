@@ -2,4 +2,6 @@ node_modules/
 *.db
 *.db-wal
 *.db-shm
+*.db-journal
 .claude/
+.env

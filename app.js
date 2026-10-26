@@ -44,7 +44,7 @@ async function entrar(p) {
   $('#who').textContent = p.name;
   $('#userbar').hidden = false;
   $('#welcome').close();
-  go('exercicios');
+  go('treinos');
 }
 function telaSenha(erro) {
   $('#userbar').hidden = true;
@@ -78,12 +78,18 @@ function toast(msg) {
 let view = 'exercicios';
 function go(v) {
   view = v;
-  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  document.querySelectorAll('#nav button').forEach(b => {
+    const on = b.dataset.view === v; b.classList.toggle('active', on);
+    if (on) $('#menuLabel').textContent = b.textContent;
+  });
+  $('#nav').hidden = true;
   ['exercicios', 'treinos', 'executar', 'calendario'].forEach(x => $('#view-' + x).hidden = x !== v);
   if (v === 'treinos') renderTreinos();
   if (v === 'executar') renderExecutar();
   if (v === 'calendario') renderCal();
 }
+$('#menuBtn').addEventListener('click', e => { e.stopPropagation(); $('#nav').hidden = !$('#nav').hidden; });
+document.addEventListener('click', e => { if (!e.target.closest('#nav')) $('#nav').hidden = true; });
 $('#nav').addEventListener('click', e => { if (e.target.dataset.view) { editing = null; go(e.target.dataset.view); } });
 
 // ---------- modal ----------
@@ -335,7 +341,7 @@ document.addEventListener('change', ev => {
 $('#welcome').addEventListener('cancel', e => e.preventDefault());
 renderGrid();
 (async () => {
-  go('exercicios');
+  go('treinos');
   try { users = await api('/api/users'); } catch (e) { if (e.status === 401) return telaSenha(); users = []; }
   const atual = users.find(p => String(p.id) === localStorage.getItem('mt_current'));
   if (atual) entrar(atual); else telaPerfil();

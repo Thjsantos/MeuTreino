@@ -12,12 +12,18 @@
 </head>
 <body>
 <header>
-  <div class="row between"><h1>🏋️ Meu Treino</h1><div id="userbar" class="row" hidden><span id="who" class="muted"></span><button class="btn sm" data-switch>Trocar usuário</button></div></div>
-  <nav id="nav">
-    <button data-view="exercicios" class="active">Exercícios</button>
-    <button data-view="treinos">Meus Treinos</button>
+  <div class="row between">
+    <div class="row">
+      <button id="menuBtn" class="btn" aria-haspopup="true">☰ <span id="menuLabel">Meus Treinos</span></button>
+      <h1>🏋️ Meu Treino</h1>
+    </div>
+    <button id="userbar" class="btn sm" data-switch title="Trocar de usuário" hidden>👤 <span id="who"></span> ⇄</button>
+  </div>
+  <nav id="nav" hidden>
+    <button data-view="treinos" class="active">Meus Treinos</button>
     <button data-view="executar">Treinar</button>
     <button data-view="calendario">Calendário</button>
+    <button data-view="exercicios">Exercícios</button>
   </nav>
 </header>
 

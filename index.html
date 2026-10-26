@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meu Treino</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="row between"><h1>🏋️ Meu Treino</h1><div id="userbar" class="row" hidden><span id="who" class="muted"></span><button class="btn sm" data-switch>Trocar usuário</button></div></div>
+  <nav id="nav">
+    <button data-view="exercicios" class="active">Exercícios</button>
+    <button data-view="treinos">Meus Treinos</button>
+    <button data-view="executar">Treinar</button>
+    <button data-view="calendario">Calendário</button>
+  </nav>
+</header>
+
+<main>
+  <section id="view-exercicios">
+    <div class="filters">
+      <input id="q" type="search" placeholder="Buscar exercício...">
+      <select id="fMusculo"></select>
+      <select id="fEquip"></select>
+    </div>
+    <p id="count" class="muted"></p>
+    <div id="grid" class="grid"></div>
+    <button id="more" class="btn" hidden>Carregar mais</button>
+  </section>
+
+  <section id="view-treinos" hidden></section>
+  <section id="view-executar" hidden></section>
+  <section id="view-calendario" hidden></section>
+</main>
+
+<dialog id="modal"></dialog>
+<dialog id="welcome"></dialog>
+<div id="toast"></div>
+
+<script src="exercises.js"></script>
+<script src="exercises_pt.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

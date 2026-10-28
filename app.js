@@ -187,11 +187,13 @@ function renderEditor(el) {
         return `<div class="item">
           <img src="${img(e)}" alt="" data-det="${e.id}" class="clickable" title="Ver como fazer">
           <div class="info"><div class="clickable" data-det="${e.id}" title="Ver como fazer"><strong>${esc(e.nome)}</strong> <span class="muted">· ver execução</span></div><div>${tags(e)}</div></div>
+          <div class="ctrls">
           <label class="muted">Séries <input type="number" min="1" value="${it.sets}" data-f="sets" data-i="${i}"></label>
           <label class="muted">Reps <input type="number" min="1" value="${it.reps}" data-f="reps" data-i="${i}"></label>
           <label class="muted">Kg <input type="number" min="0" step="0.5" value="${it.weight}" data-f="weight" data-i="${i}"></label>
           <button class="btn sm" data-mv="${i}|-1">↑</button><button class="btn sm" data-mv="${i}|1">↓</button>
           <button class="btn sm danger" data-rm="${i}">✕</button>
+          </div>
         </div>`; }).join('') || '<p class="muted">Nenhum exercício ainda.</p>'}
       <div class="row" style="margin-top:10px">
         <button class="btn" data-picker>+ Adicionar exercício</button>

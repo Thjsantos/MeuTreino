@@ -37,7 +37,7 @@ input,select,textarea{font:inherit;color:var(--text);background:var(--card);bord
 .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .row.between{justify-content:space-between}
-.item{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.item{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
 .item:first-child{border-top:0}
 .item img{width:64px;height:48px;object-fit:cover;border-radius:6px;background:#ddd}
 .item .info{flex:1;min-width:120px}
@@ -51,7 +51,7 @@ dialog{border:0;border-radius:14px;max-width:640px;width:calc(100% - 24px);paddi
 dialog::backdrop{background:rgba(0,0,0,.55)}
 .mbody{padding:16px}
 .mimgs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-.mimgs img{flex:1 1 240px;max-width:100%;border-radius:10px;background:#ddd}
+.mimgs img{flex:1 1 240px;min-width:0;max-width:100%;height:auto;border-radius:10px;background:#ddd}
 .mbody ol{padding-left:20px;line-height:1.5}
 .picker-list{max-height:55vh;overflow:auto}
 /* calendário */
@@ -69,3 +69,13 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 
 .clickable{cursor:pointer}
 .panel.clickable:hover{border-color:var(--pri)}
+img{max-width:100%}
+dialog{overflow-x:hidden}
+.ctrls{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.ctrls label{display:flex;align-items:center;gap:4px}
+@media (max-width:640px){
+  .ctrls{flex:1 0 100%}
+  .ctrls label{flex:1 1 0}
+  .ctrls input[type=number]{width:100%;min-width:0}
+  .mimgs img{flex-basis:100%}
+}

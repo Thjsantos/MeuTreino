@@ -101,3 +101,4 @@ dialog{overflow-x:hidden}
 .aula{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:14px;font:600 15px system-ui,sans-serif;cursor:pointer}
 .aula .ic{font-size:34px;line-height:1}
 .aula:hover,.aula:active{border-color:var(--pri)}
+.reg + .reg{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}

@@ -6,9 +6,9 @@ const crypto = require('node:crypto');
 const { find } = require('./routes');
 const { HttpError } = require('./errors');
 
-const ROOT = path.join(__dirname, '..');
+const PUBLICO = path.join(__dirname, '..', 'public'); // tudo que o navegador pode receber
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.yaml': 'text/yaml; charset=utf-8' };
-const PUBLIC = new Set(['index.html', 'app.js', 'corpo.js', 'style.css', 'exercises.js', 'exercises_pt.js', 'manifest.webmanifest', 'icon.svg', 'openapi.yaml']);
+const PUBLIC = new Set(['index.html', 'app.js', 'corpo.js', 'style.css', 'dados/exercises.js', 'dados/exercises_pt.js', 'manifest.webmanifest', 'icon.svg', 'openapi.yaml']);
 const MAX_BODY = 1e6;
 
 function createServer({ repo, password = '' }) {
@@ -37,7 +37,7 @@ function createServer({ repo, password = '' }) {
   });
   const arquivo = (res, file, type) => {
     res.writeHead(200, { 'Content-Type': type });
-    fs.createReadStream(path.join(ROOT, file)).pipe(res);
+    fs.createReadStream(path.join(PUBLICO, file)).pipe(res);
   };
 
   return http.createServer(async (req, res) => {

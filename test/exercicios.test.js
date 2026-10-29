@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const carregar = arquivo => {
-  const s = fs.readFileSync(path.join(__dirname, '..', arquivo), 'utf8');
+  const s = fs.readFileSync(path.join(__dirname, '..', 'public', 'dados', arquivo), 'utf8');
   return JSON.parse(s.slice(s.indexOf('=') + 1, s.lastIndexOf(';')));
 };
 const base = carregar('exercises.js');

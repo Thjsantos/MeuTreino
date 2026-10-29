@@ -4,10 +4,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 global.window = {};
-require('../corpo.js');
+require('../public/corpo.js');
 const { corpoSVG } = global.window;
 
-const s = fs.readFileSync(path.join(__dirname, '..', 'exercises.js'), 'utf8');
+const s = fs.readFileSync(path.join(__dirname, '..', 'public', 'dados', 'exercises.js'), 'utf8');
 const exercicios = JSON.parse(s.slice(s.indexOf('=') + 1, s.lastIndexOf(';')));
 const musculos = [...new Set(exercicios.flatMap(e => [...e.primaryMuscles, ...e.secondaryMuscles]))];
 

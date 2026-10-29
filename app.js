@@ -59,6 +59,19 @@ function telaSenha(erro) {
     <button class="btn pri">Entrar</button></form>${erro ? '<p style="color:var(--danger)">Senha incorreta.</p>' : ''}</div>`;
   if (!$('#welcome').open) $('#welcome').showModal();
 }
+document.addEventListener('submit', ev => {
+  if (ev.target.id !== 'avulsoForm') return;
+  ev.preventDefault();
+  const nome = $('#avNome').value.trim(), minutos = parseInt($('#avMin').value, 10);
+  if (!nome) return toast('Dê um nome ao treino');
+  if (!(minutos >= 1 && minutos <= 1440)) return toast('A duração deve ficar entre 1 e 1440 minutos');
+  enfileirar(() => enviar('POST', base() + '/logs', { date: iso(new Date()), name: nome, minutes: minutos, items: [] }))
+    .then(l => {
+      logs.push(l); toast('Treino registrado no calendário! 💪');
+      calMonth = new Date(); calMonth.setDate(1); selDay = l.date;
+      go('calendario');
+    }).catch(erro);
+});
 document.addEventListener('submit', async ev => {
   if (ev.target.id !== 'senhaForm') return;
   ev.preventDefault();
@@ -244,7 +257,16 @@ function renderExecutar() {
   const el = $('#view-executar');
   if (!session) {
     el.innerHTML = `<h2>Treinar</h2><p class="muted">Escolha um treino para iniciar:</p>` +
-      (routines.map(r => `<div class="panel row between"><div><strong>${esc(r.name)}</strong> <span class="muted">· ${r.items.length} exercício(s)</span></div><button class="btn ok" data-start="${r.id}">▶ Iniciar</button></div>`).join('') || '<p class="muted">Crie um treino primeiro na aba "Meus Treinos".</p>');
+      (routines.map(r => `<div class="panel row between"><div><strong>${esc(r.name)}</strong> <span class="muted">· ${r.items.length} exercício(s)</span></div><button class="btn ok" data-start="${r.id}">▶ Iniciar</button></div>`).join('') || '<p class="muted">Crie um treino primeiro na aba "Meus Treinos".</p>') + `
+    <h3>Treino avulso</h3>
+    <form id="avulsoForm" class="panel">
+      <p class="muted" style="margin-top:0">Para registrar algo fora dos seus treinos, como uma aula de Pilates. Fica no calendário de hoje; se precisar, mude a data lá.</p>
+      <div class="row">
+        <input id="avNome" placeholder="Nome (ex: Aula de Pilates)" maxlength="100" required style="flex:2 1 200px">
+        <input id="avMin" type="number" min="1" max="1440" placeholder="Minutos" required style="flex:1 1 90px">
+        <button class="btn pri">Registrar</button>
+      </div>
+    </form>`;
     return;
   }
   const done = session.items.filter(i => i.done).length, tot = session.items.length;
@@ -306,6 +328,8 @@ function renderCal() {
       ${dl.map(l => `
         <div style="margin-top:10px">
           <div class="row between"><strong>${esc(l.name)}</strong><span class="muted">${l.minutes} min <button class="btn sm danger" data-dellog="${l.id}">Excluir</button></span></div>
+          <label class="muted data-log">Data <input type="date" value="${l.date}" data-logdate="${l.id}"></label>
+          ${l.items.length ? '' : '<div class="muted">Treino avulso</div>'}
           ${l.items.map(i => `<div class="muted">${i.done ? '✅' : '⬜'} ${esc(byId[i.exId]?.nome || '?')} — ${i.sets}x${i.reps}${i.weight ? ' · ' + i.weight + 'kg' : ''}</div>`).join('')}
         </div>`).join('') || '<p class="muted">Nenhum treino neste dia.</p>'}
     </div>`;
@@ -363,6 +387,17 @@ document.addEventListener('click', ev => {
 modal.addEventListener('close', () => { if (view === 'treinos' && editing) renderTreinos(); });
 document.addEventListener('change', ev => {
   const t = ev.target;
+  if (t.dataset.logdate) {
+    const l = logs.find(x => x.id === t.dataset.logdate), data = t.value;
+    if (!l || !data || data === l.date) return renderCal();
+    enfileirar(() => enviar('PUT', `${base()}/logs/${l.id}`, { date: data, name: l.name, minutes: l.minutes, items: l.items }))
+      .then(r => {
+        Object.assign(l, r); selDay = r.date;
+        const [y, m] = r.date.split('-').map(Number); calMonth = new Date(y, m - 1, 1);
+        toast('Data alterada'); renderCal();
+      }).catch(e => { erro(e); renderCal(); });
+    return;
+  }
   if (t.dataset.f && editing) {
     const f = t.dataset.f, n = parseFloat(t.value) || 0;
     editing.items[+t.dataset.i][f] = f === 'weight' ? Math.min(9999, Math.max(0, n)) : Math.min(999, Math.max(1, Math.round(n)));

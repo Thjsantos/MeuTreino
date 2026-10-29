@@ -55,6 +55,10 @@ function makeRepo(db) {
       await run('INSERT INTO logs (id, user_id, date, name, minutes, items) VALUES (?, ?, ?, ?, ?, ?)', [id, uid, l.date, l.name, l.minutes, JSON.stringify(l.items)]);
       return { id, ...l };
     },
+    async updateLog(uid, lid, l) {
+      const r = await run('UPDATE logs SET date = ?, name = ?, minutes = ?, items = ? WHERE user_id = ? AND id = ?', [l.date, l.name, l.minutes, JSON.stringify(l.items), uid, lid]);
+      return r.rowsAffected > 0 ? { id: lid, ...l } : null;
+    },
     async deleteLog(uid, lid) { return (await run('DELETE FROM logs WHERE user_id = ? AND id = ?', [uid, lid])).rowsAffected > 0; },
 
     // treino em andamento (no máximo um por usuário)

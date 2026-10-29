@@ -28,6 +28,10 @@ const routes = [
   }],
   ['POST', '/api/users/:uid/logs', true, async ({ repo, uid, body }) => [201, await repo.createLog(uid, validate.log(await body()))]],
   ['GET', '/api/users/:uid/logs/:lid', true, async ({ repo, uid, params }) => [200, (await repo.getLog(uid, params.lid)) ?? nao('registro não encontrado')]],
+  ['PUT', '/api/users/:uid/logs/:lid', true, async ({ repo, uid, params, body }) => {
+    const l = validate.log(await body());
+    return [200, (await repo.updateLog(uid, params.lid, l)) ?? nao('registro não encontrado')];
+  }],
   ['DELETE', '/api/users/:uid/logs/:lid', true, async ({ repo, uid, params }) => {
     if (!(await repo.deleteLog(uid, params.lid))) nao('registro não encontrado');
     return [204];

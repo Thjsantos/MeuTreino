@@ -40,10 +40,6 @@ const routes = [
     if (!(await repo.deleteSession(uid))) nao('nenhum treino em andamento');
     return [204];
   }],
-
-  // legado (substituído pelas rotas acima; removido quando o front migrar)
-  ['GET', '/api/users/:uid/state', true, async ({ repo, uid }) => [200, await repo.getState(uid)]],
-  ['PUT', '/api/users/:uid/state', true, async ({ repo, uid, body }) => { await repo.setState(uid, await body()); return [200, { ok: true }]; }],
 ];
 
 const compiled = routes.map(([method, pattern, needsUser, handler]) => ({

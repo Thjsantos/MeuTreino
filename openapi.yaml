@@ -21,8 +21,6 @@ tags:
     description: Treinos finalizados, exibidos no calendário.
   - name: Execução
     description: O treino em andamento. Cada usuário tem no máximo um.
-  - name: Legado
-    description: Rotas antigas, mantidas só até o front migrar para as rotas por recurso.
 security:
   - cookieAuth: []
 
@@ -243,39 +241,6 @@ paths:
         '401': { $ref: '#/components/responses/NaoAutorizado' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
 
-  /api/users/{uid}/state:
-    parameters: [{ $ref: '#/components/parameters/Uid' }]
-    get:
-      tags: [Legado]
-      deprecated: true
-      summary: Ler todos os dados do usuário
-      responses:
-        '200':
-          description: Treinos, registros e sessão.
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/State' }
-        '401': { $ref: '#/components/responses/NaoAutorizado' }
-        '404': { $ref: '#/components/responses/NaoEncontrado' }
-    put:
-      tags: [Legado]
-      deprecated: true
-      summary: Substituir todos os dados do usuário
-      description: Apaga e recria tudo de uma vez. Dois aparelhos salvando ao mesmo tempo se sobrescrevem; prefira as rotas por recurso.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/State' }
-      responses:
-        '200':
-          description: Dados salvos.
-          content:
-            application/json:
-              schema: { type: object, properties: { ok: { type: boolean, example: true } } }
-        '401': { $ref: '#/components/responses/NaoAutorizado' }
-        '404': { $ref: '#/components/responses/NaoEncontrado' }
-
 components:
   securitySchemes:
     cookieAuth:
@@ -391,15 +356,3 @@ components:
           type: array
           maxItems: 100
           items: { $ref: '#/components/schemas/ExecutedItem' }
-    State:
-      type: object
-      properties:
-        routines:
-          type: array
-          items: { $ref: '#/components/schemas/Routine' }
-        logs:
-          type: array
-          items: { $ref: '#/components/schemas/Log' }
-        session:
-          nullable: true
-          allOf: [{ $ref: '#/components/schemas/Session' }]

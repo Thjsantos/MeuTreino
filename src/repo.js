@@ -61,23 +61,6 @@ function makeRepo(db) {
     async getSession(uid) { const r = (await run('SELECT data FROM sessions WHERE user_id = ?', [uid])).rows[0]; return r ? JSON.parse(r.data) : null; },
     async setSession(uid, s) { await run('INSERT INTO sessions (user_id, data) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET data = excluded.data', [uid, JSON.stringify(s)]); return s; },
     async deleteSession(uid) { return (await run('DELETE FROM sessions WHERE user_id = ?', [uid])).rowsAffected > 0; },
-
-    // legado: estado completo (será removido quando o front usar as rotas por recurso)
-    async getState(uid) {
-      const [routines, logs, session] = await Promise.all([this.listRoutines(uid), this.listLogs(uid), this.getSession(uid)]);
-      return { routines, logs, session };
-    },
-    async setState(uid, st) {
-      const ops = [
-        { sql: 'DELETE FROM routines WHERE user_id = ?', args: [uid] },
-        { sql: 'DELETE FROM logs WHERE user_id = ?', args: [uid] },
-        { sql: 'DELETE FROM sessions WHERE user_id = ?', args: [uid] },
-        ...(st.routines || []).map((r, i) => ({ sql: 'INSERT INTO routines (id, user_id, name, items, pos) VALUES (?, ?, ?, ?, ?)', args: [String(r.id), uid, String(r.name), JSON.stringify(r.items || []), i] })),
-        ...(st.logs || []).map(l => ({ sql: 'INSERT INTO logs (id, user_id, date, name, minutes, items) VALUES (?, ?, ?, ?, ?, ?)', args: [String(l.id), uid, String(l.date), String(l.name), Number(l.minutes) || 0, JSON.stringify(l.items || [])] })),
-      ];
-      if (st.session) ops.push({ sql: 'INSERT INTO sessions (user_id, data) VALUES (?, ?)', args: [uid, JSON.stringify(st.session)] });
-      await db.batch(ops, 'write'); // atômico
-    },
   };
 }
 

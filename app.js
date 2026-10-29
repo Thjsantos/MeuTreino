@@ -10,6 +10,8 @@ const AULAS = [
   { nome: 'Ritmos', icone: '💃' },
   { nome: 'Fortalecimento', icone: '💪' },
   { nome: 'Cardio', icone: '🏃' },
+  { nome: 'Abdominal', icone: '🔥' },
+  { nome: 'Caminhada', icone: '🚶' },
 ];
 const iconeAula = nome => AULAS.find(a => a.nome === nome)?.icone || '';
 const DOW = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
@@ -59,7 +61,7 @@ async function entrar(p) {
   $('#who').textContent = p.name;
   $('#userbar').hidden = false;
   $('#welcome').close();
-  go('treinos');
+  go('executar');
 }
 function telaSenha(erro) {
   $('#userbar').hidden = true;
@@ -325,9 +327,9 @@ function renderCal() {
     <div class="cal-head"><button class="btn" data-cal="-1">◀</button><h2 style="margin:0">${MESES[m]} ${y}</h2><button class="btn" data-cal="1">▶</button></div>
     <div class="cal">${cells}</div>
     <div class="panel" style="margin-top:12px">
-      <strong>${sd}/${sm}/${sy}</strong>
+      ${dl.length ? '' : `<strong>${sd}/${sm}/${sy}</strong>`}
       ${dl.map(l => `
-        <div style="margin-top:10px">
+        <div class="reg">
           <div class="row between"><strong>${iconeAula(l.name)} ${esc(l.name)}</strong><span class="muted">${l.minutes ? l.minutes + ' min ' : ''}<button class="btn sm danger" data-dellog="${l.id}">Excluir</button></span></div>
           <label class="muted data-log">Data <input type="date" value="${l.date}" data-logdate="${l.id}"></label>
           ${l.items.length ? '' : '<div class="muted">Aula</div>'}
@@ -410,7 +412,7 @@ document.addEventListener('change', ev => {
 $('#welcome').addEventListener('cancel', e => e.preventDefault());
 renderGrid();
 (async () => {
-  go('treinos');
+  go('executar');
   try { users = await api('/api/users'); } catch (e) { if (e.status === 401) return telaSenha(); users = []; }
   const atual = users.find(p => String(p.id) === localStorage.getItem('mt_current'));
   if (atual) entrar(atual); else telaPerfil();

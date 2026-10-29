@@ -12,6 +12,16 @@ node server.js
 
 Abra http://localhost:3000 (no Windows, dê dois cliques em `iniciar.bat`).
 
+## API
+
+A documentação interativa (Swagger UI) fica em `/docs`, gerada a partir de [`openapi.yaml`](openapi.yaml). Rotas por recurso: treinos, registros do calendário e treino em andamento, por usuário.
+
+```
+npm test   # testes da API (usa um banco temporário)
+```
+
+Código do servidor em `src/`: `routes.js` (rotas), `validate.js` (validação), `repo.js` (SQL) e `http.js` (servidor, senha e estáticos).
+
 ## Dados
 
 Ficam em um banco SQLite **fora do projeto**: `~/MeuTreinoDados/treino.db`

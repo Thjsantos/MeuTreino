@@ -1,0 +1,405 @@
+openapi: 3.0.3
+info:
+  title: Meu Treino API
+  version: 1.0.0
+  description: |
+    API do Meu Treino: treinos, execução (treino em andamento) e registros do calendário de cada usuário.
+
+    **Acesso.** Quando o servidor tem `APP_PASSWORD` definida, todas as rotas `/api/*` (exceto `POST /api/login`)
+    exigem o cookie `mt_auth`, obtido em `POST /api/login`. Nesta página, faça o login pela rota
+    **Autenticação → POST /api/login** e depois use "Try it out" nas demais: o navegador envia o cookie sozinho.
+
+    **Erros.** Sempre no formato `{ "erro": "mensagem" }`.
+servers:
+  - url: /
+tags:
+  - name: Autenticação
+  - name: Usuários
+  - name: Treinos
+    description: 'Treinos montados pelo usuário (ex.: "Treino A - Peito e Tríceps").'
+  - name: Registros
+    description: Treinos finalizados, exibidos no calendário.
+  - name: Execução
+    description: O treino em andamento. Cada usuário tem no máximo um.
+  - name: Legado
+    description: Rotas antigas, mantidas só até o front migrar para as rotas por recurso.
+security:
+  - cookieAuth: []
+
+paths:
+  /api/login:
+    post:
+      tags: [Autenticação]
+      summary: Entrar com a senha de acesso
+      description: Se a senha estiver correta, define o cookie `mt_auth` (HttpOnly, 1 ano). Se o servidor não tem senha configurada, sempre responde 200.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [senha]
+              properties:
+                senha: { type: string }
+      responses:
+        '200':
+          description: Acesso liberado.
+          content:
+            application/json:
+              schema: { type: object, properties: { ok: { type: boolean, example: true } } }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+
+  /api/users:
+    get:
+      tags: [Usuários]
+      summary: Listar usuários
+      description: Os usuários são fixos (Thiago e Carla).
+      responses:
+        '200':
+          description: Lista de usuários.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+
+  /api/users/{uid}/routines:
+    parameters: [{ $ref: '#/components/parameters/Uid' }]
+    get:
+      tags: [Treinos]
+      summary: Listar treinos do usuário
+      description: Na ordem de criação.
+      responses:
+        '200':
+          description: Lista de treinos.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Routine' }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    post:
+      tags: [Treinos]
+      summary: Criar treino
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RoutineInput' }
+      responses:
+        '201':
+          description: Treino criado (o `id` é gerado pelo servidor).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Routine' }
+        '400': { $ref: '#/components/responses/Invalido' }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /api/users/{uid}/routines/{rid}:
+    parameters:
+      - { $ref: '#/components/parameters/Uid' }
+      - { $ref: '#/components/parameters/Rid' }
+    get:
+      tags: [Treinos]
+      summary: Buscar um treino
+      responses:
+        '200':
+          description: O treino.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Routine' }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    put:
+      tags: [Treinos]
+      summary: Substituir um treino
+      description: Troca o nome e a lista de exercícios por completo.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RoutineInput' }
+      responses:
+        '200':
+          description: Treino atualizado.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Routine' }
+        '400': { $ref: '#/components/responses/Invalido' }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    delete:
+      tags: [Treinos]
+      summary: Excluir um treino
+      responses:
+        '204': { description: Treino excluído. }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /api/users/{uid}/logs:
+    parameters: [{ $ref: '#/components/parameters/Uid' }]
+    get:
+      tags: [Registros]
+      summary: Listar registros do calendário
+      description: Ordenados por data. Use `month` para buscar só um mês.
+      parameters:
+        - name: month
+          in: query
+          required: false
+          description: Mês no formato AAAA-MM.
+          schema: { type: string, pattern: '^\d{4}-(0[1-9]|1[0-2])$', example: '2026-10' }
+      responses:
+        '200':
+          description: Lista de registros.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Log' }
+        '400': { $ref: '#/components/responses/Invalido' }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    post:
+      tags: [Registros]
+      summary: Registrar um treino finalizado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LogInput' }
+      responses:
+        '201':
+          description: Registro criado.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Log' }
+        '400': { $ref: '#/components/responses/Invalido' }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /api/users/{uid}/logs/{lid}:
+    parameters:
+      - { $ref: '#/components/parameters/Uid' }
+      - { $ref: '#/components/parameters/Lid' }
+    get:
+      tags: [Registros]
+      summary: Buscar um registro
+      responses:
+        '200':
+          description: O registro.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Log' }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    delete:
+      tags: [Registros]
+      summary: Excluir um registro
+      responses:
+        '204': { description: Registro excluído. }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /api/users/{uid}/session:
+    parameters: [{ $ref: '#/components/parameters/Uid' }]
+    get:
+      tags: [Execução]
+      summary: Buscar o treino em andamento
+      responses:
+        '200':
+          description: O treino em andamento.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    put:
+      tags: [Execução]
+      summary: Iniciar ou atualizar o treino em andamento
+      description: Cria a sessão ou substitui a existente (usado para iniciar e para marcar exercícios como concluídos).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Session' }
+      responses:
+        '200':
+          description: Sessão salva.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '400': { $ref: '#/components/responses/Invalido' }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    delete:
+      tags: [Execução]
+      summary: Descartar o treino em andamento
+      responses:
+        '204': { description: Sessão descartada. }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /api/users/{uid}/state:
+    parameters: [{ $ref: '#/components/parameters/Uid' }]
+    get:
+      tags: [Legado]
+      deprecated: true
+      summary: Ler todos os dados do usuário
+      responses:
+        '200':
+          description: Treinos, registros e sessão.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/State' }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    put:
+      tags: [Legado]
+      deprecated: true
+      summary: Substituir todos os dados do usuário
+      description: Apaga e recria tudo de uma vez. Dois aparelhos salvando ao mesmo tempo se sobrescrevem; prefira as rotas por recurso.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/State' }
+      responses:
+        '200':
+          description: Dados salvos.
+          content:
+            application/json:
+              schema: { type: object, properties: { ok: { type: boolean, example: true } } }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: mt_auth
+      description: Cookie definido por `POST /api/login`. O navegador o envia automaticamente.
+
+  parameters:
+    Uid:
+      name: uid
+      in: path
+      required: true
+      description: Id do usuário (veja `GET /api/users`).
+      schema: { type: integer, example: 1 }
+    Rid:
+      name: rid
+      in: path
+      required: true
+      description: Id do treino.
+      schema: { type: string }
+    Lid:
+      name: lid
+      in: path
+      required: true
+      description: Id do registro.
+      schema: { type: string }
+
+  responses:
+    NaoAutorizado:
+      description: Sem acesso (cookie ausente ou senha incorreta).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erro' }
+          example: { erro: acesso negado }
+    NaoEncontrado:
+      description: Usuário ou recurso inexistente.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erro' }
+          example: { erro: treino não encontrado }
+    Invalido:
+      description: Dados inválidos.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erro' }
+          example: { erro: name é obrigatório }
+
+  schemas:
+    Erro:
+      type: object
+      properties:
+        erro: { type: string }
+    User:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: Thiago }
+    RoutineItem:
+      type: object
+      required: [exId, sets, reps]
+      properties:
+        exId: { type: string, description: Id do exercício na base de exercícios., example: Barbell_Squat }
+        sets: { type: integer, minimum: 1, maximum: 999, example: 3 }
+        reps: { type: integer, minimum: 1, maximum: 999, example: 12 }
+        weight: { type: number, minimum: 0, maximum: 9999, default: 0, description: Carga em kg., example: 40 }
+    ExecutedItem:
+      allOf:
+        - $ref: '#/components/schemas/RoutineItem'
+        - type: object
+          required: [done]
+          properties:
+            done: { type: boolean, description: Se o exercício foi concluído., example: true }
+    RoutineInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 100, example: Treino A - Pernas }
+        items:
+          type: array
+          maxItems: 100
+          items: { $ref: '#/components/schemas/RoutineItem' }
+    Routine:
+      allOf:
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+        - $ref: '#/components/schemas/RoutineInput'
+    LogInput:
+      type: object
+      required: [date, name]
+      properties:
+        date: { type: string, format: date, example: '2026-10-29' }
+        name: { type: string, maxLength: 100, example: Treino A - Pernas }
+        minutes: { type: integer, minimum: 0, maximum: 1440, default: 0, description: Duração em minutos., example: 55 }
+        items:
+          type: array
+          maxItems: 100
+          items: { $ref: '#/components/schemas/ExecutedItem' }
+    Log:
+      allOf:
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+        - $ref: '#/components/schemas/LogInput'
+    Session:
+      type: object
+      required: [name, start, items]
+      properties:
+        name: { type: string, maxLength: 100, example: Treino A - Pernas }
+        start: { type: integer, description: Início do treino em milissegundos desde 1970 (Date.now())., example: 1782000000000 }
+        items:
+          type: array
+          maxItems: 100
+          items: { $ref: '#/components/schemas/ExecutedItem' }
+    State:
+      type: object
+      properties:
+        routines:
+          type: array
+          items: { $ref: '#/components/schemas/Routine' }
+        logs:
+          type: array
+          items: { $ref: '#/components/schemas/Log' }
+        session:
+          nullable: true
+          allOf: [{ $ref: '#/components/schemas/Session' }]

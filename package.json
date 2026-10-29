@@ -2,7 +2,7 @@
   "name": "meu-treino",
   "version": "1.0.0",
   "private": true,
-  "scripts": { "start": "node server.js" },
+  "scripts": { "start": "node server.js", "test": "node --test" },
   "engines": { "node": ">=20" },
   "dependencies": { "@libsql/client": "^0.15.0" }
 }

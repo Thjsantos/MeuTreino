@@ -252,9 +252,8 @@ function renderExecutar() {
       ${session.items.map((it, i) => { const e = byId[it.exId]; return `
         <div class="item ${it.done ? 'done' : ''}">
           <input type="checkbox" class="check" ${it.done ? 'checked' : ''} data-done="${i}">
-          <img src="${img(e)}" alt="" data-det="${e.id}" style="cursor:pointer">
-          <div class="info"><div class="nm">${esc(e.nome)}</div><div class="muted">${it.sets} x ${it.reps}${it.weight ? ' · ' + it.weight + ' kg' : ''}</div></div>
-          <button class="btn sm" data-det="${e.id}">Ver execução</button>
+          <img src="${img(e)}" alt="" data-det="${e.id}" class="clickable" title="Ver como fazer">
+          <div class="info"><div class="nm clickable" data-det="${e.id}" title="Ver como fazer">${esc(e.nome)}</div><div class="muted">${it.sets} x ${it.reps}${it.weight ? ' · ' + it.weight + ' kg' : ''}</div></div>
         </div>`; }).join('')}
     </div>
     <div class="row">

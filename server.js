@@ -25,6 +25,6 @@ const db = createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN });
 createServer({ repo: makeRepo(db), password: PASSWORD }).listen(PORT, async () => {
   try {
     await init(db, USERS);
-    console.log(`Meu Treino rodando em http://localhost:${PORT}  (documentação da API: /docs)\nBanco: ${url.startsWith('file:') ? url : 'Turso (nuvem)'}${PASSWORD ? ' | acesso protegido por senha' : ' | sem senha'}`);
+    console.log(`Meu Treino rodando em http://localhost:${PORT}  (documentação da API: /docs)\nUsuários: ${USERS.join(', ')}\nBanco: ${url.startsWith('file:') ? url : 'Turso (nuvem)'}${PASSWORD ? ' | acesso protegido por senha' : ' | sem senha'}`);
   } catch (e) { console.error('Falha ao iniciar o banco:', e.message); process.exit(1); }
 });

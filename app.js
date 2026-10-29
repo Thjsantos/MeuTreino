@@ -12,6 +12,7 @@ const AULAS = [
   { nome: 'Cardio', icone: '🏃' },
   { nome: 'Abdominal', icone: '🔥' },
   { nome: 'Caminhada', icone: '🚶' },
+  { nome: 'Funcional', icone: '🤸' },
 ];
 const iconeAula = nome => AULAS.find(a => a.nome === nome)?.icone || '';
 const DOW = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];

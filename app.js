@@ -22,22 +22,28 @@ const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 let users = [], user = null, routines = [], logs = [], session = null;
 const api = async (url, opt) => {
   const r = await fetch(url, opt);
-  if (!r.ok) throw Object.assign(new Error(r.status), { status: r.status });
-  return r.json();
+  if (!r.ok) {
+    const j = await r.json().catch(() => null);
+    throw Object.assign(new Error(j?.erro || r.status), { status: r.status });
+  }
+  return r.status === 204 ? null : r.json();
 };
-let saveTimer;
-function persist() {
-  if (!user) return;
-  const uid = user.id, body = JSON.stringify({ routines, logs, session });
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => api(`/api/users/${uid}/state`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body, keepalive: true })
-    .catch(e => e.status === 401 ? telaSenha() : toast('⚠️ Não foi possível salvar no servidor')), 150);
-}
+const enviar = (method, url, body) => api(url, { method, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
+const base = () => `/api/users/${user.id}`;
+// Escritas em fila: chegam ao servidor na mesma ordem em que o usuário agiu.
+let fila = Promise.resolve();
+const enfileirar = fn => { const p = fila.then(fn); fila = p.catch(() => {}); return p; };
+const erro = e => e.status === 401 ? telaSenha() : toast('⚠️ ' + (e.status && e.status < 500 ? e.message : 'Não foi possível salvar no servidor'));
+const salvarSessao = () => enfileirar(() => session ? enviar('PUT', base() + '/session', session) : null).catch(erro);
 
 async function entrar(p) {
   try {
-    const st = await api(`/api/users/${p.id}/state`);
-    user = p; routines = st.routines; logs = st.logs; session = st.session;
+    const b = `/api/users/${p.id}`;
+    const [r, l, ses] = await Promise.all([
+      api(b + '/routines'), api(b + '/logs'),
+      api(b + '/session').catch(e => e.status === 404 ? null : Promise.reject(e)),
+    ]);
+    user = p; routines = r; logs = l; session = ses;
   } catch (e) { return e.status === 401 ? telaSenha() : toast('⚠️ Servidor indisponível'); }
   localStorage.setItem('mt_current', p.id); // só lembra quem foi o último usuário
   editing = null; selDay = iso(new Date());
@@ -158,7 +164,8 @@ const novoItem = id => ({ exId: id, sets: 3, reps: 12, weight: 0 });
 function addToRoutine(rid, exId) {
   const r = routines.find(x => x.id === rid);
   if (editing && editing.id === rid) { editing.items.push(novoItem(exId)); return; }
-  r.items.push(novoItem(exId)); persist(); toast('Adicionado a ' + r.name);
+  r.items.push(novoItem(exId)); toast('Adicionado a ' + r.name);
+  enfileirar(() => enviar('PUT', `${base()}/routines/${rid}`, { name: r.name, items: r.items })).catch(erro);
 }
 
 // ---------- treinos ----------
@@ -181,7 +188,7 @@ function renderEditor(el) {
   el.innerHTML = `
     <div class="row between"><h2>${routines.some(r => r.id === editing.id) ? 'Editar treino' : 'Novo treino'}</h2></div>
     <div class="panel">
-      <input id="rname" value="${esc(editing.name)}" placeholder="Nome do treino (ex: Treino A - Peito e Tríceps)" style="width:100%;margin-bottom:8px">
+      <input id="rname" value="${esc(editing.name)}" maxlength="100" placeholder="Nome do treino (ex: Treino A - Peito e Tríceps)" style="width:100%;margin-bottom:8px">
       ${editing.items.map((it, i) => {
         const e = byId[it.exId]; if (!e) return '';
         return `<div class="item">
@@ -226,7 +233,7 @@ function startSession(rid) {
   if (!r || !r.items.length) return toast('Esse treino não tem exercícios');
   if (session && !confirm('Já existe um treino em andamento. Descartar e iniciar outro?')) return;
   session = { name: r.name, start: Date.now(), items: r.items.map(i => ({ ...i, done: false })) };
-  persist(); go('executar');
+  salvarSessao(); go('executar');
 }
 function renderExecutar() {
   const el = $('#view-executar');
@@ -253,13 +260,18 @@ function renderExecutar() {
       <button class="btn danger" data-discard>Descartar</button>
     </div>`;
 }
-function finish() {
+async function finish() {
   const done = session.items.filter(i => i.done).length;
   if (!done) return toast('Marque pelo menos um exercício como concluído');
   if (done < session.items.length && !confirm(`Só ${done} de ${session.items.length} exercícios concluídos. Finalizar mesmo assim?`)) return;
-  const min = Math.round((Date.now() - session.start) / 60000);
-  logs.push({ id: uid(), date: iso(new Date()), name: session.name, minutes: min, items: session.items });
-  session = null; persist();
+  const reg = { date: iso(new Date()), name: session.name, minutes: Math.round((Date.now() - session.start) / 60000), items: session.items };
+  try {
+    await enfileirar(async () => {
+      const salvo = await enviar('POST', base() + '/logs', reg);
+      logs.push(salvo); session = null;
+      await api(base() + '/session', { method: 'DELETE' }).catch(e => { if (e.status !== 404) throw e; });
+    });
+  } catch (e) { return erro(e); }
   toast('Treino salvo no calendário! 💪');
   calMonth = new Date(); calMonth.setDate(1); selDay = iso(new Date());
   go('calendario');
@@ -307,11 +319,17 @@ document.addEventListener('click', ev => {
   if (d.addto) { const [rid, ex] = d.addto.split('|'); addToRoutine(rid, ex); closeModal(); if (view === 'treinos') renderTreinos(); return; }
   if (d.newwith) {
     const name = $('#newName').value.trim() || 'Novo treino';
-    routines.push({ id: uid(), name, items: [novoItem(d.newwith)] }); persist(); closeModal(); return toast('Treino criado');
+    enfileirar(() => enviar('POST', base() + '/routines', { name, items: [novoItem(d.newwith)] }))
+      .then(r => { routines.push(r); closeModal(); toast('Treino criado'); }).catch(erro);
+    return;
   }
   if ('newroutine' in d) { editing = { id: uid(), name: '', items: [] }; return renderTreinos(); }
   if (d.edit) { editing = JSON.parse(JSON.stringify(routines.find(r => r.id === d.edit))); return renderTreinos(); }
-  if (d.delroutine) { if (confirm('Excluir este treino?')) { routines = routines.filter(r => r.id !== d.delroutine); editing = null; persist(); toast('Treino excluído'); renderTreinos(); } return; }
+  if (d.delroutine) {
+    if (confirm('Excluir este treino?')) enfileirar(() => enviar('DELETE', `${base()}/routines/${d.delroutine}`))
+      .then(() => { routines = routines.filter(r => r.id !== d.delroutine); editing = null; toast('Treino excluído'); renderTreinos(); }).catch(erro);
+    return;
+  }
   if ('picker' in d) { syncName(); return picker(); }
   if (d.pick) { editing.items.push(novoItem(d.pick)); toast('Adicionado'); return; }
   if (d.mv) { syncName(); const [i, dir] = d.mv.split('|').map(Number), j = i + dir; if (editing.items[j]) { [editing.items[i], editing.items[j]] = [editing.items[j], editing.items[i]]; renderTreinos(); } return; }
@@ -321,23 +339,31 @@ document.addEventListener('click', ev => {
     syncName();
     if (!editing.name.trim()) return toast('Dê um nome ao treino');
     if (!editing.items.length) return toast('Adicione ao menos um exercício');
-    const i = routines.findIndex(r => r.id === editing.id);
-    if (i >= 0) routines[i] = editing; else routines.push(editing);
-    editing = null; persist(); toast('Treino salvo'); return renderTreinos();
+    const ed = editing, i = routines.findIndex(r => r.id === ed.id), corpo = { name: ed.name.trim(), items: ed.items };
+    enfileirar(() => i >= 0 ? enviar('PUT', `${base()}/routines/${ed.id}`, corpo) : enviar('POST', base() + '/routines', corpo))
+      .then(r => { if (i >= 0) routines[i] = r; else routines.push(r); editing = null; toast('Treino salvo'); renderTreinos(); }).catch(erro);
+    return;
   }
   if (d.start) return startSession(d.start);
-  if (d.done !== undefined && t.matches('input')) { session.items[+d.done].done = t.checked; persist(); return renderExecutar(); }
+  if (d.done !== undefined && t.matches('input')) { session.items[+d.done].done = t.checked; salvarSessao(); return renderExecutar(); }
   if ('finish' in d) return finish();
-  if ('discard' in d) { if (confirm('Descartar o treino em andamento?')) { session = null; persist(); renderExecutar(); } return; }
+  if ('discard' in d) { if (confirm('Descartar o treino em andamento?')) { session = null; renderExecutar(); enfileirar(() => api(base() + '/session', { method: 'DELETE' })).catch(e => e.status === 404 ? null : erro(e)); } return; }
   if (d.cal) { calMonth.setMonth(calMonth.getMonth() + +d.cal); return renderCal(); }
   if (d.day) { selDay = d.day; return renderCal(); }
-  if (d.dellog) { if (confirm('Excluir este registro?')) { logs = logs.filter(l => l.id !== d.dellog); persist(); renderCal(); } }
+  if (d.dellog) { if (confirm('Excluir este registro?')) {
+    enfileirar(() => enviar('DELETE', `${base()}/logs/${d.dellog}`))
+      .then(() => { logs = logs.filter(l => l.id !== d.dellog); renderCal(); }).catch(erro);
+  } }
 });
 // o picker atualiza o editor sem re-renderizar o modal; ao fechar, redesenha
 modal.addEventListener('close', () => { if (view === 'treinos' && editing) renderTreinos(); });
 document.addEventListener('change', ev => {
   const t = ev.target;
-  if (t.dataset.f && editing) editing.items[+t.dataset.i][t.dataset.f] = Math.max(0, parseFloat(t.value) || 0);
+  if (t.dataset.f && editing) {
+    const f = t.dataset.f, n = parseFloat(t.value) || 0;
+    editing.items[+t.dataset.i][f] = f === 'weight' ? Math.min(9999, Math.max(0, n)) : Math.min(999, Math.max(1, Math.round(n)));
+    if (f !== 'weight') t.value = editing.items[+t.dataset.i][f];
+  }
 });
 
 $('#welcome').addEventListener('cancel', e => e.preventDefault());

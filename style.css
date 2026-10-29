@@ -84,6 +84,9 @@ dialog{overflow-x:hidden}
 
 .corpo{width:100%;max-width:420px;display:block;margin:8px auto}
 .corpo .sil{fill:var(--silhueta)}
+.corpo .det{fill:var(--musculo)}
+.corpo .det-l{fill:none;stroke:var(--musculo);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.corpo .rotulo{fill:var(--muted);font:600 16px system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
 .corpo .mus{fill:var(--musculo);stroke:var(--card);stroke-width:1}
 .corpo .mus.p{fill:var(--pri)}
 .corpo .mus.s{fill:var(--pri);fill-opacity:.4}

@@ -145,12 +145,13 @@ function detalhe(id) {
   openModal(`
     <div class="row between"><h2 style="margin:0">${esc(e.nome)}</h2><button class="btn sm" data-close>✕</button></div>
     <p>${tags(e)} ${e.secondaryMuscles.map(m => `<span class="tag">+ ${MUSCLES[m] || m}</span>`).join(' ')}</p>
-    ${corpoSVG(e.primaryMuscles, e.secondaryMuscles)}
-    <div class="corpo-legenda"><span><i></i>Principal</span><span><i class="s"></i>Secundário</span></div>
     <div class="mimgs">${e.images.map((_, i) => `<img src="${img(e, i)}" alt="passo ${i + 1}">`).join('')}</div>
     <h3>Execução</h3>
     <ol>${e.passos.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
-    <button class="btn pri" data-add="${e.id}">+ Adicionar a um treino</button>`);
+    <h3>Músculos trabalhados</h3>
+    ${corpoSVG(e.primaryMuscles, e.secondaryMuscles)}
+    <div class="corpo-legenda"><span><i></i>Principal</span><span><i class="s"></i>Secundário</span></div>
+    <p><button class="btn pri" data-add="${e.id}">+ Adicionar a um treino</button></p>`);
 }
 
 // adicionar exercício a um treino (a partir da biblioteca)

@@ -21,18 +21,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
 
       - name: Instalar dependências
         run: npm ci
-
-      - name: Validar openapi.yaml
-        run: npx --yes @apidevtools/swagger-parser@10 validate openapi.yaml
 
       - name: Rodar os testes
         run: >
@@ -47,9 +44,16 @@ jobs:
         run: |
           if [ -f resumo-testes.md ]; then cat resumo-testes.md >> "$GITHUB_STEP_SUMMARY"; fi
 
+      # roda mesmo se os testes falharem, para o relatório mostrar as duas coisas
+      - name: Validar openapi.yaml
+        if: always()
+        run: |
+          npm install --no-save @apidevtools/swagger-parser@10
+          node scripts/validar-openapi.js
+
       - name: Guardar os resultados (JUnit XML)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: resultados-testes
           path: |

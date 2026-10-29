@@ -164,7 +164,7 @@ paths:
     post:
       tags: [Registros]
       summary: Registrar um treino finalizado
-      description: 'Para um treino avulso (por exemplo, uma aula de Pilates), envie só `date`, `name` e `minutes`; `items` pode ficar vazio ou ser omitido.'
+      description: 'Para uma aula avulsa (por exemplo, Pilates ou Spinning), envie só `date` e `name`; `minutes` (padrão 0) e `items` (padrão vazio) são opcionais.'
       requestBody:
         required: true
         content:

@@ -3,6 +3,15 @@ const IMG = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exe
 const MUSCLES = {abdominals:'Abdômen',abductors:'Abdutores',adductors:'Adutores',biceps:'Bíceps',calves:'Panturrilha',chest:'Peito',forearms:'Antebraço',glutes:'Glúteos',hamstrings:'Posterior de coxa','lower back':'Lombar',lats:'Dorsal','middle back':'Costas (meio)',neck:'Pescoço',quadriceps:'Quadríceps',shoulders:'Ombros',traps:'Trapézio',triceps:'Tríceps'};
 const EQUIP = {'body only':'Peso do corpo',machine:'Máquina',barbell:'Barra',dumbbell:'Halteres',cable:'Cabo/Polia',kettlebells:'Kettlebell',bands:'Elástico','medicine ball':'Medicine ball','exercise ball':'Bola suíça','e-z curl bar':'Barra W','foam roll':'Rolo',other:'Outro'};
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+// Aulas avulsas: um toque registra no calendário de hoje, sem exercícios e sem duração.
+const AULAS = [
+  { nome: 'Spinning', icone: '🚴' },
+  { nome: 'Pilates', icone: '🧘' },
+  { nome: 'Ritmos', icone: '💃' },
+  { nome: 'Fortalecimento', icone: '💪' },
+  { nome: 'Cardio', icone: '🏃' },
+];
+const iconeAula = nome => AULAS.find(a => a.nome === nome)?.icone || '';
 const DOW = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
 const EX = window.EXERCISES || [];
@@ -59,19 +68,17 @@ function telaSenha(erro) {
     <button class="btn pri">Entrar</button></form>${erro ? '<p style="color:var(--danger)">Senha incorreta.</p>' : ''}</div>`;
   if (!$('#welcome').open) $('#welcome').showModal();
 }
-document.addEventListener('submit', ev => {
-  if (ev.target.id !== 'avulsoForm') return;
-  ev.preventDefault();
-  const nome = $('#avNome').value.trim(), minutos = parseInt($('#avMin').value, 10);
-  if (!nome) return toast('Dê um nome ao treino');
-  if (!(minutos >= 1 && minutos <= 1440)) return toast('A duração deve ficar entre 1 e 1440 minutos');
-  enfileirar(() => enviar('POST', base() + '/logs', { date: iso(new Date()), name: nome, minutes: minutos, items: [] }))
+let registrandoAula = false;
+function registrarAula(nome) {
+  if (registrandoAula) return; // evita registrar duas vezes num toque duplo
+  registrandoAula = true;
+  enfileirar(() => enviar('POST', base() + '/logs', { date: iso(new Date()), name: nome, minutes: 0, items: [] }))
     .then(l => {
-      logs.push(l); toast('Treino registrado no calendário! 💪');
+      logs.push(l); toast(`${iconeAula(nome)} ${nome} registrado no calendário!`);
       calMonth = new Date(); calMonth.setDate(1); selDay = l.date;
       go('calendario');
-    }).catch(erro);
-});
+    }).catch(erro).finally(() => { registrandoAula = false; });
+}
 document.addEventListener('submit', async ev => {
   if (ev.target.id !== 'senhaForm') return;
   ev.preventDefault();
@@ -258,15 +265,9 @@ function renderExecutar() {
   if (!session) {
     el.innerHTML = `<h2>Treinar</h2><p class="muted">Escolha um treino para iniciar:</p>` +
       (routines.map(r => `<div class="panel row between"><div><strong>${esc(r.name)}</strong> <span class="muted">· ${r.items.length} exercício(s)</span></div><button class="btn ok" data-start="${r.id}">▶ Iniciar</button></div>`).join('') || '<p class="muted">Crie um treino primeiro na aba "Meus Treinos".</p>') + `
-    <h3>Treino avulso</h3>
-    <form id="avulsoForm" class="panel">
-      <p class="muted" style="margin-top:0">Para registrar algo fora dos seus treinos, como uma aula de Pilates. Fica no calendário de hoje; se precisar, mude a data lá.</p>
-      <div class="row">
-        <input id="avNome" placeholder="Nome (ex: Aula de Pilates)" maxlength="100" required style="flex:2 1 200px">
-        <input id="avMin" type="number" min="1" max="1440" placeholder="Minutos" required style="flex:1 1 90px">
-        <button class="btn pri">Registrar</button>
-      </div>
-    </form>`;
+    <h3>Aulas</h3>
+    <p class="muted" style="margin-top:0">Toque para registrar uma aula de hoje no calendário.</p>
+    <div class="aulas">${AULAS.map(a => `<button class="aula" data-aula="${a.nome}"><span class="ic">${a.icone}</span>${a.nome}</button>`).join('')}</div>`;
     return;
   }
   const done = session.items.filter(i => i.done).length, tot = session.items.length;
@@ -327,9 +328,9 @@ function renderCal() {
       <strong>${sd}/${sm}/${sy}</strong>
       ${dl.map(l => `
         <div style="margin-top:10px">
-          <div class="row between"><strong>${esc(l.name)}</strong><span class="muted">${l.minutes} min <button class="btn sm danger" data-dellog="${l.id}">Excluir</button></span></div>
+          <div class="row between"><strong>${iconeAula(l.name)} ${esc(l.name)}</strong><span class="muted">${l.minutes ? l.minutes + ' min ' : ''}<button class="btn sm danger" data-dellog="${l.id}">Excluir</button></span></div>
           <label class="muted data-log">Data <input type="date" value="${l.date}" data-logdate="${l.id}"></label>
-          ${l.items.length ? '' : '<div class="muted">Treino avulso</div>'}
+          ${l.items.length ? '' : '<div class="muted">Aula</div>'}
           ${l.items.map(i => `<div class="muted">${i.done ? '✅' : '⬜'} ${esc(byId[i.exId]?.nome || '?')} — ${i.sets}x${i.reps}${i.weight ? ' · ' + i.weight + 'kg' : ''}</div>`).join('')}
         </div>`).join('') || '<p class="muted">Nenhum treino neste dia.</p>'}
     </div>`;
@@ -340,6 +341,7 @@ document.addEventListener('click', ev => {
   const t = ev.target.closest('button, img, .day, input.check, .clickable'); if (!t) return;
   const d = t.dataset;
   if ('close' in d) return closeModal();
+  if (d.aula) return registrarAula(d.aula);
   if (d.prof) return entrar(users.find(p => String(p.id) === d.prof));
   if ('switch' in d) { user = null; localStorage.removeItem('mt_current'); return telaPerfil(); }
   if (d.det) { syncName(); return detalhe(d.det); }

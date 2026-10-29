@@ -112,6 +112,12 @@ test('registro avulso (sem exercícios) e correção da data', async () => {
   assert.equal(c.status, 201);
   assert.deepEqual(c.body.items, []);
 
+  // aula avulsa só com data e nome: duração 0 e sem exercícios
+  const aula = await api('POST', '/api/users/1/logs', { date: '2026-08-11', name: 'Spinning' });
+  assert.equal(aula.status, 201);
+  assert.equal(aula.body.minutes, 0);
+  assert.deepEqual(aula.body.items, []);
+
   const u = await api('PUT', `/api/users/1/logs/${c.body.id}`, { date: '2026-09-08', name: 'Aula de Pilates', minutes: 50, items: [] });
   assert.equal(u.status, 200);
   assert.equal(u.body.date, '2026-09-08');

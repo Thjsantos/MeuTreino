@@ -7,3 +7,6 @@ node_modules/
 .env
 resultados-testes.xml
 resumo-testes.md
+resultados-testes.json
+resultado-openapi.json
+relatorio-testes.html

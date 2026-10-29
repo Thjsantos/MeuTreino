@@ -17,6 +17,7 @@ permissions:
 
 jobs:
   testes:
+    # este nome é o que a proteção da main exige (check obrigatório): se mudar aqui, mude lá também
     name: Testes (API e exercícios)
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -36,13 +37,7 @@ jobs:
           node --test
           --test-reporter=spec --test-reporter-destination=stdout
           --test-reporter=junit --test-reporter-destination=resultados-testes.xml
-          --test-reporter=./scripts/resumo-testes.js --test-reporter-destination=resumo-testes.md
-
-      # o relatório aparece na página da execução (aba "Summary"), mesmo se algum teste falhar
-      - name: Publicar o relatório
-        if: always()
-        run: |
-          if [ -f resumo-testes.md ]; then cat resumo-testes.md >> "$GITHUB_STEP_SUMMARY"; fi
+          --test-reporter=./scripts/reporter-json.js --test-reporter-destination=resultados-testes.json
 
       # roda mesmo se os testes falharem, para o relatório mostrar as duas coisas
       - name: Validar openapi.yaml
@@ -51,12 +46,27 @@ jobs:
           npm install --no-save @apidevtools/swagger-parser@10
           node scripts/validar-openapi.js
 
-      - name: Guardar os resultados (JUnit XML)
+      # relatório HTML + resumo na aba "Summary" da execução, mesmo se algo falhar
+      - name: Gerar o relatório
+        if: always()
+        run: node scripts/gerar-relatorio.js
+
+      # sem compactar: o arquivo fica disponível como "relatorio-testes.html" na seção Artifacts
+      - name: Guardar o relatório HTML
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: resultados-testes
+          path: relatorio-testes.html
+          archive: false
+          if-no-files-found: ignore
+
+      - name: Guardar os dados dos testes
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: dados-dos-testes
           path: |
             resultados-testes.xml
-            resumo-testes.md
+            resultados-testes.json
+            resultado-openapi.json
           if-no-files-found: ignore

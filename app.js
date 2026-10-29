@@ -193,13 +193,15 @@ function renderEditor(el) {
         const e = byId[it.exId]; if (!e) return '';
         return `<div class="item">
           <img src="${img(e)}" alt="" data-det="${e.id}" class="clickable" title="Ver como fazer">
-          <div class="info"><div class="clickable" data-det="${e.id}" title="Ver como fazer"><strong>${esc(e.nome)}</strong> <span class="muted">· ver execução</span></div><div>${tags(e)}</div></div>
+          <div class="info"><div class="clickable" data-det="${e.id}" title="Ver como fazer"><strong>${esc(e.nome)}</strong></div><div>${tags(e)}</div></div>
           <div class="ctrls">
           <label class="muted">Séries <input type="number" min="1" value="${it.sets}" data-f="sets" data-i="${i}"></label>
           <label class="muted">Reps <input type="number" min="1" value="${it.reps}" data-f="reps" data-i="${i}"></label>
           <label class="muted">Kg <input type="number" min="0" step="0.5" value="${it.weight}" data-f="weight" data-i="${i}"></label>
-          <button class="btn sm" data-mv="${i}|-1">↑</button><button class="btn sm" data-mv="${i}|1">↓</button>
-          <button class="btn sm danger" data-rm="${i}">✕</button>
+          </div>
+          <div class="acoes">
+            <button class="btn sm" data-mv="${i}|-1" title="Mover para cima">↑</button><button class="btn sm" data-mv="${i}|1" title="Mover para baixo">↓</button>
+            <button class="btn sm danger" data-rm="${i}" title="Remover do treino">✕</button>
           </div>
         </div>`; }).join('') || '<p class="muted">Nenhum exercício ainda.</p>'}
       <div class="row" style="margin-top:10px">
@@ -250,9 +252,8 @@ function renderExecutar() {
       ${session.items.map((it, i) => { const e = byId[it.exId]; return `
         <div class="item ${it.done ? 'done' : ''}">
           <input type="checkbox" class="check" ${it.done ? 'checked' : ''} data-done="${i}">
-          <img src="${img(e)}" alt="" data-det="${e.id}" style="cursor:pointer">
-          <div class="info"><div class="nm">${esc(e.nome)}</div><div class="muted">${it.sets} x ${it.reps}${it.weight ? ' · ' + it.weight + ' kg' : ''}</div></div>
-          <button class="btn sm" data-det="${e.id}">Ver execução</button>
+          <img src="${img(e)}" alt="" data-det="${e.id}" class="clickable" title="Ver como fazer">
+          <div class="info"><div class="nm clickable" data-det="${e.id}" title="Ver como fazer">${esc(e.nome)}</div><div class="muted">${it.sets} x ${it.reps}${it.weight ? ' · ' + it.weight + ' kg' : ''}</div></div>
         </div>`; }).join('')}
     </div>
     <div class="row">

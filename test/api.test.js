@@ -156,5 +156,13 @@ test('documentação e especificação são públicas', async () => {
   assert.equal(spec.status, 200);
   assert.match(await spec.text(), /openapi: 3\.0\.3/);
   assert.equal((await fetch(base + '/corpo.js')).status, 200);
+  assert.equal((await fetch(base + '/dados/exercises.js')).status, 200);
+  assert.equal((await fetch(base + '/')).status, 200);
   cookie = semCookie;
+});
+
+test('só serve os arquivos públicos (nada do código do servidor)', async () => {
+  for (const caminho of ['/server.js', '/package.json', '/src/http.js', '/test/api.test.js', '/../server.js', '/%2e%2e/server.js', '/public/app.js', '/exercises.js', '/.github/workflows/testes.yml']) {
+    assert.equal((await fetch(base + caminho)).status, 404, caminho);
+  }
 });

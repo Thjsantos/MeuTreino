@@ -6,7 +6,7 @@ const SwaggerParser = require('@apidevtools/swagger-parser');
 
 const gravar = r => fs.writeFileSync('resultado-openapi.json', JSON.stringify(r));
 
-SwaggerParser.validate(path.join(__dirname, '..', 'openapi.yaml'))
+SwaggerParser.validate(path.join(__dirname, '..', 'public', 'openapi.yaml'))
   .then(api => {
     const caminhos = Object.keys(api.paths).length;
     gravar({ ok: true, caminhos });

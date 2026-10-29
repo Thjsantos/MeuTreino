@@ -1,0 +1,58 @@
+name: Testes
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# um PR novo cancela a execução anterior do mesmo PR
+concurrency:
+  group: testes-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    name: Testes (API e exercícios)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Validar openapi.yaml
+        run: npx --yes @apidevtools/swagger-parser@10 validate openapi.yaml
+
+      - name: Rodar os testes
+        run: >
+          node --test
+          --test-reporter=spec --test-reporter-destination=stdout
+          --test-reporter=junit --test-reporter-destination=resultados-testes.xml
+          --test-reporter=./scripts/resumo-testes.js --test-reporter-destination=resumo-testes.md
+
+      # o relatório aparece na página da execução (aba "Summary"), mesmo se algum teste falhar
+      - name: Publicar o relatório
+        if: always()
+        run: |
+          if [ -f resumo-testes.md ]; then cat resumo-testes.md >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Guardar os resultados (JUnit XML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-testes
+          path: |
+            resultados-testes.xml
+            resumo-testes.md
+          if-no-files-found: ignore

@@ -1,6 +1,6 @@
 # Meu Treino
 
-App para montar treinos de academia, executá-los e registrar no calendário. Usuários fixos: Thiago e Carla, cada um com seus próprios treinos, execuções e calendário.
+App para montar treinos de academia, executá-los e registrar no calendário. Cada usuário tem seus próprios treinos, execuções e calendário. Os usuários são fixos (sem cadastro) e definidos pela variável `USERS`; por padrão, Thiago e Carla.
 
 ## Como rodar
 
@@ -11,6 +11,17 @@ node server.js
 ```
 
 Abra http://localhost:3000 (no Windows, dê dois cliques em `iniciar.bat`).
+
+## Usuários
+
+Defina a variável de ambiente `USERS` com os nomes separados por vírgula:
+
+```
+USERS="Ana,Bruno" node server.js        # Linux/macOS
+$env:USERS="Ana,Bruno"; node server.js  # PowerShell
+```
+
+No Render, crie `USERS` em *Environment*. Sem a variável, os usuários são `Thiago,Carla`. Nomes novos são criados no banco ao iniciar; **tirar um nome da lista não apaga o usuário nem os dados dele**. Duplicados (sem diferenciar maiúsculas) são ignorados e cada nome pode ter até 50 caracteres.
 
 ## API
 

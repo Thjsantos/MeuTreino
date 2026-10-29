@@ -1,15 +1,17 @@
 // Meu Treino: serve o site e a API, guardando os dados em SQLite/Turso (libSQL), fora do projeto.
 // Local:   node server.js            -> banco em ~/MeuTreinoDados/treino.db
 // Nuvem:   defina TURSO_DATABASE_URL e TURSO_AUTH_TOKEN (e APP_PASSWORD para proteger o acesso)
+// Usuários: USERS="Ana,Bruno" (padrão: Thiago,Carla)
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const { createClient } = require('@libsql/client');
 const { init, makeRepo } = require('./src/repo');
 const { createServer } = require('./src/http');
+const { parseUsers } = require('./src/users');
 
 const PORT = process.env.PORT || 3000;
-const USERS = ['Thiago', 'Carla'];
+const USERS = parseUsers(process.env.USERS);
 const PASSWORD = process.env.APP_PASSWORD || '';
 
 let url = process.env.TURSO_DATABASE_URL;

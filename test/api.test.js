@@ -119,13 +119,9 @@ test('treino em andamento: iniciar, atualizar, buscar e descartar', async () => 
   assert.equal((await api('GET', '/api/users/1/session')).status, 404);
 });
 
-test('rota legada /state continua funcionando', async () => {
-  const put = await api('PUT', '/api/users/2/state', { routines: [{ id: 'x1', name: 'Legado', items: [] }], logs: [], session: null });
-  assert.equal(put.status, 200);
-  const get = await api('GET', '/api/users/2/state');
-  assert.equal(get.body.routines[0].name, 'Legado');
-  // e enxerga o mesmo dado que as rotas novas
-  assert.equal((await api('GET', '/api/users/2/routines/x1')).status, 200);
+test('rota antiga /state foi removida', async () => {
+  assert.equal((await api('GET', '/api/users/1/state')).status, 404);
+  assert.equal((await api('PUT', '/api/users/1/state', { routines: [] })).status, 404);
 });
 
 test('documentação e especificação são públicas', async () => {

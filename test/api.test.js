@@ -132,5 +132,6 @@ test('documentação e especificação são públicas', async () => {
   const spec = await fetch(base + '/openapi.yaml');
   assert.equal(spec.status, 200);
   assert.match(await spec.text(), /openapi: 3\.0\.3/);
+  assert.equal((await fetch(base + '/corpo.js')).status, 200);
   cookie = semCookie;
 });

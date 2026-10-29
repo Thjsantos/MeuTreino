@@ -1,6 +1,7 @@
 # 🏋️ Meu Treino
 
 [![Testes](https://github.com/Thjsantos/MeuTreino/actions/workflows/testes.yml/badge.svg)](https://github.com/Thjsantos/MeuTreino/actions/workflows/testes.yml)
+[![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue.svg)](LICENSE)
 
 App web para **montar treinos de academia, executá-los e registrar no calendário**, pensado para usar no celular durante o treino. Feito para poucas pessoas (os usuários são fixos, sem cadastro), com os dados guardados num banco SQLite/Turso fora do código.
 
@@ -122,6 +123,10 @@ O pipeline [`Testes`](.github/workflows/testes.yml) roda no GitHub Actions em to
 ## 🤝 Contribuindo
 
 A `main` é protegida: não aceita push direto, e o merge só é liberado com o check **"Testes (API e exercícios)"** verde. O fluxo é criar uma branch, abrir um PR e aguardar os testes.
+
+## 📄 Licença
+
+O código deste projeto está sob a licença [MIT](LICENSE): você pode usar, copiar, modificar e distribuir, desde que mantenha o aviso de copyright. A base de exercícios, as imagens e a tradução são de terceiros e seguem as licenças de cada projeto, citadas abaixo.
 
 ## 📦 Dados e créditos
 

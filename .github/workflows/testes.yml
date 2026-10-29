@@ -1,0 +1,72 @@
+name: Testes
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# um PR novo cancela a execução anterior do mesmo PR
+concurrency:
+  group: testes-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    # este nome é o que a proteção da main exige (check obrigatório): se mudar aqui, mude lá também
+    name: Testes (API e exercícios)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Rodar os testes
+        run: >
+          node --test
+          --test-reporter=spec --test-reporter-destination=stdout
+          --test-reporter=junit --test-reporter-destination=resultados-testes.xml
+          --test-reporter=./scripts/reporter-json.js --test-reporter-destination=resultados-testes.json
+
+      # roda mesmo se os testes falharem, para o relatório mostrar as duas coisas
+      - name: Validar openapi.yaml
+        if: always()
+        run: |
+          npm install --no-save @apidevtools/swagger-parser@10
+          node scripts/validar-openapi.js
+
+      # relatório HTML + resumo na aba "Summary" da execução, mesmo se algo falhar
+      - name: Gerar o relatório
+        if: always()
+        run: node scripts/gerar-relatorio.js
+
+      # sem compactar: o arquivo fica disponível como "relatorio-testes.html" na seção Artifacts
+      - name: Guardar o relatório HTML
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          path: relatorio-testes.html
+          archive: false
+          if-no-files-found: ignore
+
+      - name: Guardar os dados dos testes
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: dados-dos-testes
+          path: |
+            resultados-testes.xml
+            resultados-testes.json
+            resultado-openapi.json
+          if-no-files-found: ignore

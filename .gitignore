@@ -5,3 +5,8 @@ node_modules/
 *.db-journal
 .claude/
 .env
+resultados-testes.xml
+resumo-testes.md
+resultados-testes.json
+resultado-openapi.json
+relatorio-testes.html

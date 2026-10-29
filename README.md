@@ -40,4 +40,4 @@ Ficam em um banco SQLite **fora do projeto**: `~/MeuTreinoDados/treino.db`
 
 ## Base de exercícios
 
-`exercises.js` vem de [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (domínio público); as imagens são carregadas de lá. `exercises_pt.js` contém os nomes e instruções traduzidos automaticamente para português.
+`exercises.js` vem de [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (domínio público); as imagens são carregadas de lá. `exercises_pt.js` (nomes e instruções em português) vem de [exercicios-bd-ptbr](https://github.com/joao-gugel/exercicios-bd-ptbr) (CC0) e é gerado por `node scripts/gerar-exercicios-pt.js`, fixado num commit específico da tradução.

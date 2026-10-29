@@ -93,3 +93,11 @@ dialog{overflow-x:hidden}
 .corpo-legenda{display:flex;gap:16px;justify-content:center;font-size:13px;color:var(--muted)}
 .corpo-legenda i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--pri)}
 .corpo-legenda i.s{opacity:.4}
+
+.data-log{display:flex;align-items:center;gap:8px;margin:6px 0}
+.data-log input{padding:4px 8px}
+
+.aulas{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.aula{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:14px;font:600 15px system-ui,sans-serif;cursor:pointer}
+.aula .ic{font-size:34px;line-height:1}
+.aula:hover,.aula:active{border-color:var(--pri)}

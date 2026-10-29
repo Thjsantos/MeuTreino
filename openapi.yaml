@@ -164,6 +164,7 @@ paths:
     post:
       tags: [Registros]
       summary: Registrar um treino finalizado
+      description: 'Para uma aula avulsa (por exemplo, Pilates ou Spinning), envie só `date` e `name`; `minutes` (padrão 0) e `items` (padrão vazio) são opcionais.'
       requestBody:
         required: true
         content:
@@ -192,6 +193,24 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Log' }
+        '401': { $ref: '#/components/responses/NaoAutorizado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    put:
+      tags: [Registros]
+      summary: Substituir um registro
+      description: Troca data, nome, duração e exercícios por completo. Usado, por exemplo, para corrigir a data de um treino que foi registrado no dia errado.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LogInput' }
+      responses:
+        '200':
+          description: Registro atualizado.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Log' }
+        '400': { $ref: '#/components/responses/Invalido' }
         '401': { $ref: '#/components/responses/NaoAutorizado' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
     delete:

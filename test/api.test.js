@@ -107,6 +107,29 @@ test('registros do calendário: criar, filtrar por mês e excluir', async () => 
   assert.equal((await api('GET', `/api/users/1/logs/${a.body.id}`)).status, 404);
 });
 
+test('registro avulso (sem exercícios) e correção da data', async () => {
+  const c = await api('POST', '/api/users/1/logs', { date: '2026-09-10', name: 'Aula de Pilates', minutes: 50 });
+  assert.equal(c.status, 201);
+  assert.deepEqual(c.body.items, []);
+
+  // aula avulsa só com data e nome: duração 0 e sem exercícios
+  const aula = await api('POST', '/api/users/1/logs', { date: '2026-08-11', name: 'Spinning' });
+  assert.equal(aula.status, 201);
+  assert.equal(aula.body.minutes, 0);
+  assert.deepEqual(aula.body.items, []);
+
+  const u = await api('PUT', `/api/users/1/logs/${c.body.id}`, { date: '2026-09-08', name: 'Aula de Pilates', minutes: 50, items: [] });
+  assert.equal(u.status, 200);
+  assert.equal(u.body.date, '2026-09-08');
+  assert.equal((await api('GET', `/api/users/1/logs/${c.body.id}`)).body.date, '2026-09-08');
+  assert.deepEqual((await api('GET', '/api/users/1/logs?month=2026-09')).body.map(l => l.date), ['2026-09-08']);
+
+  assert.equal((await api('PUT', `/api/users/1/logs/${c.body.id}`, { date: '2026-02-30', name: 'x', minutes: 1 })).status, 400);
+  assert.equal((await api('PUT', `/api/users/2/logs/${c.body.id}`, { date: '2026-09-08', name: 'x', minutes: 1 })).status, 404);
+  assert.equal((await api('PUT', '/api/users/1/logs/nao-existe', { date: '2026-09-08', name: 'x', minutes: 1 })).status, 404);
+  assert.equal((await api('GET', `/api/users/1/logs/${c.body.id}`)).body.date, '2026-09-08');
+});
+
 test('treino em andamento: iniciar, atualizar, buscar e descartar', async () => {
   assert.equal((await api('GET', '/api/users/1/session')).status, 404);
   const s = { name: 'Treino A', start: 1782000000000, items: [{ exId: 'Barbell_Squat', sets: 3, reps: 10, weight: 40, done: false }] };

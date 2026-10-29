@@ -8,7 +8,7 @@ const { HttpError } = require('./errors');
 
 const ROOT = path.join(__dirname, '..');
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.yaml': 'text/yaml; charset=utf-8' };
-const PUBLIC = new Set(['index.html', 'app.js', 'style.css', 'exercises.js', 'exercises_pt.js', 'manifest.webmanifest', 'icon.svg', 'openapi.yaml']);
+const PUBLIC = new Set(['index.html', 'app.js', 'corpo.js', 'style.css', 'exercises.js', 'exercises_pt.js', 'manifest.webmanifest', 'icon.svg', 'openapi.yaml']);
 const MAX_BODY = 1e6;
 
 function createServer({ repo, password = '' }) {

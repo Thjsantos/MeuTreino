@@ -1,9 +1,10 @@
 :root{
   --bg:#f4f5f7;--card:#fff;--text:#1c1f26;--muted:#6b7280;--line:#e3e6ea;
   --pri:#e8590c;--pri-d:#c2410c;--ok:#16a34a;--danger:#dc2626;
+  --silhueta:#d8dde4;--musculo:#c4cad3;
 }
 @media (prefers-color-scheme:dark){
-  :root{--bg:#14161a;--card:#1e2127;--text:#eceef2;--muted:#9aa1ad;--line:#2d3139}
+  :root{--bg:#14161a;--card:#1e2127;--text:#eceef2;--muted:#9aa1ad;--line:#2d3139;--silhueta:#323741;--musculo:#444a56}
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
@@ -80,3 +81,15 @@ dialog{overflow-x:hidden}
   .acoes [data-rm]{margin-left:auto}
   .mimgs img{flex-basis:100%}
 }
+
+.corpo{width:100%;max-width:420px;display:block;margin:8px auto}
+.corpo .sil{fill:var(--silhueta)}
+.corpo .det{fill:var(--musculo)}
+.corpo .det-l{fill:none;stroke:var(--musculo);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.corpo .rotulo{fill:var(--muted);font:600 16px system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.corpo .mus{fill:var(--musculo);stroke:var(--card);stroke-width:1}
+.corpo .mus.p{fill:var(--pri)}
+.corpo .mus.s{fill:var(--pri);fill-opacity:.4}
+.corpo-legenda{display:flex;gap:16px;justify-content:center;font-size:13px;color:var(--muted)}
+.corpo-legenda i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--pri)}
+.corpo-legenda i.s{opacity:.4}

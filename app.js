@@ -148,7 +148,10 @@ function detalhe(id) {
     <div class="mimgs">${e.images.map((_, i) => `<img src="${img(e, i)}" alt="passo ${i + 1}">`).join('')}</div>
     <h3>Execução</h3>
     <ol>${e.passos.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
-    <button class="btn pri" data-add="${e.id}">+ Adicionar a um treino</button>`);
+    <h3>Músculos trabalhados</h3>
+    ${corpoSVG(e.primaryMuscles, e.secondaryMuscles)}
+    <div class="corpo-legenda"><span><i></i>Principal</span><span><i class="s"></i>Secundário</span></div>
+    <p><button class="btn pri" data-add="${e.id}">+ Adicionar a um treino</button></p>`);
 }
 
 // adicionar exercício a um treino (a partir da biblioteca)

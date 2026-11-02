@@ -102,3 +102,5 @@ dialog{overflow-x:hidden}
 .aula .ic{font-size:34px;line-height:1}
 .aula:hover,.aula:active{border-color:var(--pri)}
 .reg + .reg{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+
+.btn.play{flex:none;width:40px;height:40px;padding:0;border-radius:50%;font-size:16px;line-height:1;display:inline-flex;align-items:center;justify-content:center}

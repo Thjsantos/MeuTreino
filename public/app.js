@@ -267,7 +267,7 @@ function renderExecutar() {
   const el = $('#view-executar');
   if (!session) {
     el.innerHTML = `<h2>Treinar</h2><p class="muted">Escolha um treino para iniciar:</p>` +
-      (routines.map(r => `<div class="panel row between"><div><strong>${esc(r.name)}</strong> <span class="muted">· ${r.items.length} exercício(s)</span></div><button class="btn ok" data-start="${r.id}">▶ Iniciar</button></div>`).join('') || '<p class="muted">Crie um treino primeiro na aba "Meus Treinos".</p>') + `
+      (routines.map(r => `<div class="panel row between"><div style="flex:1;min-width:0"><strong>${esc(r.name)}</strong><div class="muted">${r.items.length} exercício(s)</div></div><button class="btn ok play" data-start="${r.id}" title="Iniciar treino" aria-label="Iniciar ${esc(r.name)}">▶</button></div>`).join('') || '<p class="muted">Crie um treino primeiro na aba "Meus Treinos".</p>') + `
     <h3>Aulas</h3>
     <p class="muted" style="margin-top:0">Toque para registrar uma aula de hoje no calendário.</p>
     <div class="aulas">${AULAS.map(a => `<button class="aula" data-aula="${a.nome}"><span class="ic">${a.icone}</span>${a.nome}</button>`).join('')}</div>`;
